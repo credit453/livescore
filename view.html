@@ -1,0 +1,376 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Media View</title>
+    <script type="module">
+        import { initializeApp } from 'https://www.gstatic.com/firebasejs/9.0.2/firebase-app.js';
+        import { getStorage, ref as storageRef, uploadBytesResumable, getDownloadURL } from 'https://www.gstatic.com/firebasejs/9.0.2/firebase-storage.js';
+        import { getDatabase, ref as dbRef, push, onValue, set, increment, runTransaction } from 'https://www.gstatic.com/firebasejs/9.0.2/firebase-database.js';
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyB6tWe0xxeg9-A8rfv3ouRAWHkJzM1klzU",
+            authDomain: "upload-2f843.firebaseapp.com",
+            databaseURL: "https://upload-2f843-default-rtdb.firebaseio.com",
+            projectId: "upload-2f843",
+            storageBucket: "upload-2f843.appspot.com",
+            messagingSenderId: "111629636560",
+            appId: "1:111629636560:web:873b63fc4f0c3709391fd5"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const storage = getStorage(app);
+        const database = getDatabase(app);
+
+        function displayMedia() {
+            const mediaContainer = document.getElementById('media-container');
+            const mediaRef = dbRef(database, 'media');
+
+            onValue(mediaRef, (snapshot) => {
+                mediaContainer.innerHTML = '';
+                const mediaArray = [];
+
+                snapshot.forEach((childSnapshot) => {
+                    const mediaData = childSnapshot.val();
+                    const mediaKey = childSnapshot.key;
+                    const mediaType = mediaData.type;
+                    const mediaUrl = mediaData.url;
+                    const mediaName = mediaData.name;
+                    const mediaTimestamp = mediaData.timestamp;
+
+                    mediaArray.push({
+                        key: mediaKey,
+                        type: mediaType,
+                        url: mediaUrl,
+                        name: mediaName,
+                        timestamp: mediaTimestamp,
+                        likes: mediaData.likes || 0
+                    });
+                });
+
+                mediaArray.sort((a, b) => b.timestamp - a.timestamp);
+
+                mediaArray.forEach(mediaData => {
+                    const mediaKey = mediaData.key;
+                    const mediaType = mediaData.type;
+                    const mediaUrl = mediaData.url;
+                    const mediaTimestamp = mediaData.timestamp;
+                    const mediaLikes = mediaData.likes;
+
+                    const mediaFrame = document.createElement('div');
+                    mediaFrame.classList.add('media-frame');
+
+                    let mediaElement;
+                    if (mediaType.startsWith('image/')) {
+                        mediaElement = document.createElement('img');
+                    } else if (mediaType.startsWith('video/')) {
+                        mediaElement = document.createElement('video');
+                        mediaElement.controls = true;
+                    }
+                    mediaElement.src = mediaUrl;
+                    mediaElement.classList.add('media-item');
+
+                    const date = new Date(mediaTimestamp);
+                    const formattedDate = `${date.toLocaleDateString()} ${date.toLocaleTimeString()}`;
+
+                    const timestampElement = document.createElement('div');
+                    timestampElement.textContent = `Uploaded on: ${formattedDate}`;
+                    timestampElement.classList.add('timestamp');
+
+                    const buttonContainer = document.createElement('div');
+                    buttonContainer.classList.add('button-container');
+
+                    const likeButton = document.createElement('button');
+                    likeButton.textContent = `Like (${mediaLikes})`;
+                    likeButton.classList.add('like-button');
+                    likeButton.addEventListener('click', () => updateActivityCount(mediaKey, 'likes', likeButton));
+
+                    const shareButton = document.createElement('button');
+                    shareButton.textContent = 'Share';
+                    shareButton.classList.add('share-button');
+                    shareButton.addEventListener('click', () => toggleSharePopup(mediaFrame.id));
+
+                    const commentForm = document.createElement('form');
+                    commentForm.classList.add('comment-form');
+                    const commentInput = document.createElement('input');
+                    commentInput.type = 'text';
+                    commentInput.placeholder = 'Add a comment...';
+                    commentInput.classList.add('comment-input');
+                    const submitCommentButton = document.createElement('button');
+                    submitCommentButton.type = 'submit';
+                    submitCommentButton.textContent = 'Post';
+                    submitCommentButton.classList.add('submit-comment-button');
+
+                    commentForm.addEventListener('submit', (e) => {
+                        e.preventDefault();
+                        if (commentInput.value.trim() === '') {
+                            alert("Please add a comment before posting.");
+                            return;
+                        }
+                        postComment(mediaKey, commentInput.value);
+                        commentInput.value = '';
+                    });
+
+                    const commentList = document.createElement('div');
+                    commentList.classList.add('comment-list');
+
+                    fetchComments(mediaKey, commentList);
+
+                    commentForm.appendChild(commentInput);
+                    commentForm.appendChild(submitCommentButton);
+
+                    buttonContainer.appendChild(likeButton);
+                    buttonContainer.appendChild(shareButton);
+
+                    mediaFrame.appendChild(mediaElement);
+                    mediaFrame.appendChild(timestampElement);
+                    mediaFrame.appendChild(buttonContainer);
+                    mediaFrame.appendChild(commentForm);
+                    mediaFrame.appendChild(commentList);
+
+                    mediaContainer.appendChild(mediaFrame);
+                });
+            });
+        }
+
+        function updateActivityCount(mediaKey, activityType, likeButton) {
+            const activityRef = dbRef(database, `media/${mediaKey}`);
+            runTransaction(activityRef, (media) => {
+                if (media) {
+                    if (!media.likes) media.likes = 0;
+                    media.likes += 1;
+                }
+                return media;
+            }).then(() => {
+                displayMedia();
+            }).catch((error) => {
+                console.error("Transaction failed:", error);
+            });
+        }
+
+        function postComment(mediaKey, commentText) {
+            const commentsRef = dbRef(database, `media/${mediaKey}/comments`);
+            const newCommentRef = push(commentsRef);
+            set(newCommentRef, {
+                text: commentText,
+                timestamp: Date.now()
+            }).then(() => {
+                updateCommentCount(mediaKey);
+            });
+        }
+
+        function updateCommentCount(mediaKey) {
+            const commentCountRef = dbRef(database, `media/${mediaKey}/commentCount`);
+            set(commentCountRef, increment(1));
+        }
+
+        function fetchComments(mediaKey, commentList) {
+            const commentsRef = dbRef(database, `media/${mediaKey}/comments`);
+            onValue(commentsRef, (snapshot) => {
+                commentList.innerHTML = '';
+                snapshot.forEach((childSnapshot) => {
+                    const commentData = childSnapshot.val();
+                    const commentItem = document.createElement('div');
+                    commentItem.classList.add('comment-item');
+                    commentItem.textContent = commentData.text;
+                    commentList.appendChild(commentItem);
+                });
+            });
+        }
+
+        function toggleSharePopup(mediaFrameId) {
+            const popup = document.getElementById('share-popup');
+            popup.classList.toggle('show');
+            document.getElementById('share-popup-url').value = document.querySelector(`#${mediaFrameId} .media-item`).src;
+        }
+
+        document.addEventListener('DOMContentLoaded', displayMedia);
+    </script>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #FFE4E1;
+        }
+        .header {
+            background-color: rgba(255, 255, 255, 0.8);
+            padding: 20px;
+            text-align: center;
+            position: fixed;
+            width: 100%;
+            top: 0;
+            left: 0;
+            z-index: 1000;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        .header-title {
+            font-size: 24px;
+            font-weight: bold;
+            color: #333;
+            margin: 0;
+        }
+
+        .welcome-message {
+            margin-top: 80px; /* Adjust this if the header height changes */
+            text-align: center;
+            font-family: 'Comic Sans MS', cursive, sans-serif;
+            font-size: 18px;
+            color: blue;
+        }
+        #media-container {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+        .media-frame {
+            width: 100%;
+            max-width: 600px;
+            margin: 10px;
+            border: 0px;
+            padding: 10px;
+            border-radius: 5px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            position: relative;
+        }
+        .media-item {
+            width: 100%;
+            max-height: 500px;
+            object-fit: cover;
+        }
+        .timestamp {
+            font-size: 14px;
+            color: blue;
+            margin-top: 5px;
+        }
+        .button-container {
+            display: flex;
+            justify-content: space-between;
+            width: 100%;
+            margin-top: 10px;
+        }
+        .like-button {
+            padding: 10px 15px;
+            border: none;
+            border-radius: 5px;
+            background-color: #006400;
+            color: white;
+            cursor: pointer;
+            flex: 1;
+            margin: 0 5px;
+        }
+        .like-button:hover {
+            background-color: #0056b3;
+        }
+        .share-button {
+            padding: 10px 15px;
+            border: none;
+            border-radius: 5px;
+            background-color: #28a745;
+            color: white;
+            cursor: pointer;
+            flex: 1;
+            margin: 0 5px;
+        }
+        .share-button:hover {
+            background-color: #218838;
+        }
+        .comment-form {
+            width: 100%;
+            display: flex;
+            flex-direction: column;
+            margin-top: 10px;
+        }
+        .comment-input {
+            width: calc(100% - 80px);
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            margin-bottom: 5px;
+        }
+        .submit-comment-button {
+            width: 75px;
+            padding: 10px;
+            border: none;
+            border-radius: 5px;
+            background-color: #007bff;
+            color: white;
+            cursor: pointer;
+        }
+        .submit-comment-button:hover {
+            background-color: #0056b3;
+        }
+        .comment-list {
+            width: 100%;
+            margin-top: 10px;
+        }
+        .comment-item {
+            padding: 5px;
+            border-bottom: 1px solid #ccc;
+        }
+        #share-popup {
+            display: none;
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background-color: none;
+            padding: 20px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            z-index: 1000;
+        }
+        #share-popup.show {
+            display: block;
+        }
+        #share-popup button {
+            margin: 5px;
+        }
+        #share-popup-url {
+            width: 100%;
+            padding: 5px;
+            margin-top: 10px;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1 class="header-title">Our Media Page</h1>
+    </div>
+
+    <div class="welcome-message">
+        <p>View our latest upload at the top. You can like, share, and comment. Please comment responsibly and avoid inciting conflict.</p>
+    </div>
+
+    <div id="share-popup">
+        <h3>Share this media</h3>
+        <input type="text" id="share-popup-url" readonly />
+        <button onclick="shareOnFacebook()">Share on Facebook</button>
+        <button onclick="shareOnTwitter()">Share on Twitter</button>
+        <button onclick="shareOnWhatsApp()">Share on WhatsApp</button>
+        <button onclick="document.getElementById('share-popup').classList.remove('show')">Close</button>
+    </div>
+
+    <div id="media-container"></div>
+
+    <script>
+        function shareOnFacebook() {
+            const url = document.getElementById('share-popup-url').value;
+            window.open(`https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(url)}`, '_blank');
+        }
+
+        function shareOnTwitter() {
+            const url = document.getElementById('share-popup-url').value;
+            window.open(`https://twitter.com/intent/tweet?url=${encodeURIComponent(url)}`, '_blank');
+        }
+
+        function shareOnWhatsApp() {
+            const url = document.getElementById('share-popup-url').value;
+            window.open(`https://wa.me/?text=${encodeURIComponent(url)}`, '_blank');
+        }
+    </script>
+</body>
+</html>

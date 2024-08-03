@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Upload and Manage Media</title>
+    <script type="module">
+        import { initializeApp } from 'https://www.gstatic.com/firebasejs/9.0.2/firebase-app.js';
+        import { getStorage, ref as storageRef, uploadBytesResumable, getDownloadURL, deleteObject } from 'https://www.gstatic.com/firebasejs/9.0.2/firebase-storage.js';
+        import { getDatabase, ref as dbRef, push, remove, onValue } from 'https://www.gstatic.com/firebasejs/9.0.2/firebase-database.js';
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyB6tWe0xxeg9-A8rfv3ouRAWHkJzM1klzU",
+            authDomain: "upload-2f843.firebaseapp.com",
+            databaseURL: "https://upload-2f843-default-rtdb.firebaseio.com",
+            projectId: "upload-2f843",
+            storageBucket: "upload-2f843.appspot.com",
+            messagingSenderId: "111629636560",
+            appId: "1:111629636560:web:873b63fc4f0c3709391fd5"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const storage = getStorage(app);
+        const database = getDatabase(app);
+
+        window.uploadFile = () => {
+            const fileInput = document.getElementById('fileInput');
+            const file = fileInput.files[0];
+            if (!file) {
+                alert("Please select a file.");
+                return;
+            }
+
+            const fileRef = storageRef(storage, 'media/' + file.name);
+            const uploadTask = uploadBytesResumable(fileRef, file);
+
+            uploadTask.on('state_changed', 
+                (snapshot) => {
+                    // Observe state change, progress, etc.
+                }, 
+                (error) => {
+                    console.error("Upload failed:", error);
+                }, 
+                () => {
+                    getDownloadURL(uploadTask.snapshot.ref).then((downloadURL) => {
+                        const mediaRef = dbRef(database, 'media');
+                        push(mediaRef, {
+                            url: downloadURL,
+                            type: file.type,
+                            name: file.name,
+                            timestamp: Date.now() // Add timestamp here
+                        });
+                        alert("Upload successful!");
+                    });
+                }
+            );
+        }
+
+        function displayMedia() {
+            const mediaContainer = document.getElementById('media-container');
+            const mediaRef = dbRef(database, 'media');
+
+            onValue(mediaRef, (snapshot) => {
+                mediaContainer.innerHTML = '';
+                snapshot.forEach((childSnapshot) => {
+                    const mediaData = childSnapshot.val();
+                    const mediaType = mediaData.type;
+                    const mediaUrl = mediaData.url;
+                    const mediaName = mediaData.name;
+                    const mediaKey = childSnapshot.key;
+                    const timestamp = mediaData.timestamp;
+
+                    const uploadDate = new Date(Number(timestamp)).toLocaleString(); // Convert timestamp
+
+                    if (!mediaName || !mediaKey) {
+                        console.error("Missing media data", mediaData);
+                        return;
+                    }
+
+                    const mediaFrame = document.createElement('div');
+                    mediaFrame.classList.add('media-frame');
+
+                    let mediaElement;
+                    if (mediaType.startsWith('image/')) {
+                        mediaElement = document.createElement('img');
+                    } else if (mediaType.startsWith('video/')) {
+                        mediaElement = document.createElement('video');
+                        mediaElement.controls = true;
+                    }
+                    mediaElement.src = mediaUrl;
+
+                    // Create delete button
+                    const deleteButton = document.createElement('button');
+                    deleteButton.textContent = 'Delete';
+                    deleteButton.onclick = () => deleteMedia(mediaKey, mediaName);
+
+                    // Create timestamp element
+                    const timestampElement = document.createElement('div');
+                    timestampElement.classList.add('timestamp');
+                    timestampElement.textContent = `Uploaded on: ${uploadDate}`;
+
+                    // Append elements
+                    mediaFrame.appendChild(mediaElement);
+                    mediaFrame.appendChild(timestampElement);
+                    mediaFrame.appendChild(deleteButton);
+
+                    mediaContainer.appendChild(mediaFrame);
+                });
+            });
+        }
+
+        function deleteMedia(mediaKey, mediaName) {
+            if (!mediaName) {
+                console.error("Media name is undefined");
+                return;
+            }
+
+            // Delete from Storage
+            const fileRef = storageRef(storage, 'media/' + mediaName);
+            deleteObject(fileRef).then(() => {
+                // Delete from Database
+                const mediaRef = dbRef(database, 'media/' + mediaKey);
+                remove(mediaRef).then(() => {
+                    alert("File deleted successfully!");
+                }).catch((error) => {
+                    console.error("Database removal failed:", error);
+                });
+            }).catch((error) => {
+                console.error("Storage deletion failed:", error);
+            });
+        }
+
+        document.addEventListener('DOMContentLoaded', displayMedia);
+    </script>
+<style>
+    body {
+        font-family: Arial, sans-serif;
+    }
+    #media-container {
+        text-align: center; /* Center align the contents */
+    }
+    #media-container img, #media-container video {
+        max-width: 100%;
+        height: auto;
+        margin: 10px;
+    }
+    #media-container button {
+        display: inline-block; /* Make button an inline-block element */
+        margin: 10px 0;
+        padding: 15px 30px; /* Increase padding to enlarge button */
+        font-size: 18px; /* Increase font size */
+    }
+    .timestamp {
+        font-size: 14px;
+        color: #666;
+        margin-top: 10px;
+    }
+</style>
+</head>
+<body>
+    <h1>Upload and Manage Media</h1>
+    <input type="file" id="fileInput" accept="image/*,video/*">
+    <button onclick="uploadFile()">Upload</button>
+    <div id="media-container"></div>
+</body>
+</html>

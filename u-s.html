@@ -1,0 +1,204 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Update Livescore</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f0f0f0;
+        }
+        .container {
+            width: 80%;
+            margin: auto;
+            overflow: hidden;
+        }
+        header {
+            background: #333;
+            color: #fff;
+            padding-top: 30px;
+            min-height: 70px;
+            border-bottom: #77aaff 3px solid;
+        }
+        header h1 {
+            margin: 0;
+            text-align: center;
+        }
+        .update-form {
+            background: #fff;
+            padding: 20px;
+            margin-top: 20px;
+            border: 1px solid #ddd;
+            border-radius: 10px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        }
+        .update-form h2 {
+            margin-top: 0;
+        }
+        .update-form label {
+            display: block;
+            margin: 10px 0 5px;
+        }
+        .update-form input, .update-form select {
+            width: calc(100% - 22px);
+            padding: 10px;
+            margin-bottom: 10px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+        }
+        .update-form button {
+            background-color: #77aaff;
+            color: #fff;
+            border: none;
+            padding: 10px;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+        .update-form button:hover {
+            background-color: #555;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <div class="container">
+            <h1>Update Livescore</h1>
+        </div>
+    </header>
+    <div class="container">
+        <div class="update-form">
+            <h2>Update Match Details</h2>
+            <form id="updateForm">
+                <div>
+                    <label for="teamAName">Team A Name:</label>
+                    <input type="text" id="teamAName">
+                </div>
+                <div>
+                    <label for="teamBName">Team B Name:</label>
+                    <input type="text" id="teamBName">
+                </div>
+                <div>
+                    <label for="teamALogo">Team A Logo URL:</label>
+                    <input type="text" id="teamALogo">
+                </div>
+                <div>
+                    <label for="teamBLogo">Team B Logo URL:</label>
+                    <input type="text" id="teamBLogo">
+                </div>
+                <div>
+                    <label for="teamAScore">Team A Score:</label>
+                    <input type="number" id="teamAScore">
+                </div>
+                <div>
+                    <label for="teamBScore">Team B Score:</label>
+                    <input type="number" id="teamBScore">
+                </div>
+                <h3>Timers</h3>
+                <div>
+                    <label for="timer">Timer Status:</label>
+                    <select id="timer">
+                        <option value="Not Started">Not Started</option>
+                        <option value="HT">HT</option>
+                        <option value="1st">1st 0-45+</option>
+                        <option value="2nd">2nd 46-90+</option>
+                        <option value="FT">FT</option>
+                    </select>
+                </div>
+                <h3>Statistics</h3>
+                <div>
+                    <label for="possessionA">Ball Possession Team A:</label>
+                    <input type="number" id="possessionA">
+                </div>
+                <div>
+                    <label for="possessionB">Ball Possession Team B:</label>
+                    <input type="number" id="possessionB">
+                </div>
+                <div>
+                    <label for="yellowA">Yellow Cards Team A:</label>
+                    <input type="number" id="yellowA">
+                </div>
+                <div>
+                    <label for="yellowB">Yellow Cards Team B:</label>
+                    <input type="number" id="yellowB">
+                </div>
+                <div>
+                    <label for="redA">Red Cards Team A:</label>
+                    <input type="number" id="redA">
+                </div>
+                <div>
+                    <label for="redB">Red Cards Team B:</label>
+                    <input type="number" id="redB">
+                </div>
+                <button type="submit">Update Livescore</button>
+            </form>
+        </div>
+    </div>
+    <!-- Firebase setup -->
+    <script src="https://www.gstatic.com/firebasejs/8.6.1/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.6.1/firebase-database.js"></script>
+    <script>
+        // Your web app's Firebase configuration
+        const firebaseConfig = {
+            apiKey: "AIzaSyBK5UM0n8-GLvleW7l6B8Hi-_WuC64QA4U",
+            authDomain: "scores-b25a7.firebaseapp.com",
+            projectId: "scores-b25a7",
+            storageBucket: "scores-b25a7.appspot.com",
+            messagingSenderId: "1001957936318",
+            appId: "1:1001957936318:web:43934942ee87654fd8e2ef",
+            measurementId: "G-3QES2VR31T"
+        };
+        // Initialize Firebase
+        firebase.initializeApp(firebaseConfig);
+        var database = firebase.database();
+
+        document.getElementById('updateForm').addEventListener('submit', (e) => {
+            e.preventDefault();
+            const updates = {};
+
+            const teamAName = document.getElementById('teamAName').value;
+            if (teamAName) updates['/livescore/teamA/name'] = teamAName;
+
+            const teamBName = document.getElementById('teamBName').value;
+            if (teamBName) updates['/livescore/teamB/name'] = teamBName;
+
+            const teamALogo = document.getElementById('teamALogo').value;
+            if (teamALogo) updates['/livescore/teamA/logo'] = teamALogo;
+
+            const teamBLogo = document.getElementById('teamBLogo').value;
+            if (teamBLogo) updates['/livescore/teamB/logo'] = teamBLogo;
+
+            const teamAScore = document.getElementById('teamAScore').value;
+            if (teamAScore) updates['/livescore/teamA/score'] = teamAScore;
+
+            const teamBScore = document.getElementById('teamBScore').value;
+            if (teamBScore) updates['/livescore/teamB/score'] = teamBScore;
+
+            const timerStatus = document.getElementById('timer').value;
+            updates['/livescore/timer'] = timerStatus;
+
+            const possessionA = document.getElementById('possessionA').value;
+            if (possessionA) updates['/livescore/statistics/possessionA'] = possessionA;
+
+            const possessionB = document.getElementById('possessionB').value;
+            if (possessionB) updates['/livescore/statistics/possessionB'] = possessionB;
+
+            const yellowA = document.getElementById('yellowA').value;
+            if (yellowA) updates['/livescore/statistics/yellowA'] = yellowA;
+
+            const yellowB = document.getElementById('yellowB').value;
+            if (yellowB) updates['/livescore/statistics/yellowB'] = yellowB;
+
+            const redA = document.getElementById('redA').value;
+            if (redA) updates['/livescore/statistics/redA'] = redA;
+
+            const redB = document.getElementById('redB').value;
+            if (redB) updates['/livescore/statistics/redB'] = redB;
+
+            database.ref().update(updates);
+        });
+    </script>
+</body>
+</html>

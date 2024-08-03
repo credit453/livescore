@@ -1,0 +1,299 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Soccer Livescore</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f0f0f0;
+            margin: 0;
+            padding: 0;
+        }
+        header {
+            background: #333;
+            color: #fff;
+            padding-top: 30px;
+            min-height: 100px;
+            border-bottom: #77aaff 3px solid;
+            position: relative;
+            text-align: center;
+        }
+        header h1 {
+            margin: 0;
+            font-size: 24px;
+        }
+        .countdown {
+            font-size: 18px;
+            margin: 10px 0;
+        }
+        .address {
+            font-size: 16px;
+            margin: 5px 0;
+        }
+        .container {
+            width: 80%;
+            margin: auto;
+            overflow: hidden;
+        }
+        .scoreboard {
+            background: #fff;
+            padding: 20px;
+            margin-top: 20px;
+            border: 1px solid #ddd;
+            border-radius: 10px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            text-align: center;
+            transform: perspective(1000px) rotateX(0deg);
+            transition: transform 0.3s;
+        }
+        .scoreboard:hover {
+            transform: perspective(1000px) rotateX(10deg);
+        }
+        .scoreboard h2 {
+            margin: 0;
+            font-size: 28px;
+        }
+        .teams {
+            margin: 20px 0;
+            display: flex;
+            justify-content: space-around;
+            align-items: center;
+        }
+        .teams img {
+            width: 80px;
+            height: 80px;
+            border-radius: 50%;
+        }
+        .teams .team-name {
+            font-size: 20px;
+        }
+        .score {
+            font-size: 48px;
+            margin: 10px 0;
+        }
+        .timers {
+            font-size: 36px;
+            margin: 20px 0;
+        }
+        .statistics {
+            margin-top: 20px;
+            font-size: 16px;
+        }
+                .thumbnail {
+            width: 200px; /* Adjust size as needed */
+            cursor: pointer;
+            border: 2px solid #ccc;
+            border-radius: 5px;
+            transition: transform 0.3s ease;
+        }
+        .thumbnail:hover {
+            transform: scale(1.05);
+        }
+                .footer {
+            text-align: center;
+            margin-top: 20px;
+            font-size: 38px;
+        }
+        .whatsapp-icon {
+            width: 44px;
+            vertical-align: middle;
+            margin-left: 10px;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 10px;
+        }
+        table, th, td {
+            border: 1px solid #ddd;
+        }
+        th, td {
+            padding: 10px;
+            text-align: center;
+        }
+        th {
+            background-color: #f2f2f2;
+        }
+        @media (max-width: 768px) {
+            .teams {
+                flex-direction: column;
+            }
+            .teams img {
+                width: 60px;
+                height: 60px;
+            }
+            .score {
+                font-size: 36px;
+            }
+            .timers {
+                font-size: 28px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <div class="container">
+            <h1>Soccer Livescore</h1>
+            <div class="countdown">
+                Countdown to Match: <span id="countdown"></span>
+            </div>
+            <div class="address">
+                KWAMBA TECHNICAL COLLEGE SOCCER FIELD
+            </div>
+        </div>
+    </header>
+    <div class="container">
+        <div class="scoreboard">
+            <div class="teams">
+                <div class="team">
+                    <img id="teamALogo" src="riders.png" alt="Team A Logo">
+                    <div class="team-name" id="teamAName">Team A</div>
+                </div>
+                <div class="team">
+                    <img id="teamBLogo" src="g.png" alt="Team B Logo">
+                    <div class="team-name" id="teamBName">Team B</div>
+                </div>
+            </div>
+            <div class="score">
+                <span id="teamAScore">0</span> : <span id="teamBScore">0</span>
+            </div>
+            <div class="timers">
+                Timer: <span id="timer">00:00</span>
+            </div>
+            <div class="statistics">
+                <h3>Match Statistics</h3>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Stat</th>
+                            <th>Riders</th>
+                            <th>Golden Star</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>Ball Possession (%)</td>
+                            <td id="possessionA">0</td>
+                            <td id="possessionB">0</td>
+                        </tr>
+                        <tr>
+                            <td>Yellow Cards</td>
+                            <td id="yellowA">0</td>
+                            <td id="yellowB">0</td>
+                        </tr>
+                        <tr>
+                            <td>Red Cards</td>
+                            <td id="redA">0</td>
+                            <td id="redB">0</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    <a href="view.html">
+        <img src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSNRfEiyQbuUhI56wBenkn7v8SM0Tnq9kln1g&s" alt="Thumbnail Image" class="thumbnail">
+    </a>
+    </div>
+    <!-- Firebase setup -->
+    <script src="https://www.gstatic.com/firebasejs/8.6.1/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.6.1/firebase-database.js"></script>
+    <script>
+        // Your web app's Firebase configuration
+        const firebaseConfig = {
+            apiKey: "AIzaSyBK5UM0n8-GLvleW7l6B8Hi-_WuC64QA4U",
+            authDomain: "scores-b25a7.firebaseapp.com",
+            projectId: "scores-b25a7",
+            storageBucket: "scores-b25a7.appspot.com",
+            messagingSenderId: "1001957936318",
+            appId: "1:1001957936318:web:43934942ee87654fd8e2ef",
+            measurementId: "G-3QES2VR31T"
+        };
+        // Initialize Firebase
+        firebase.initializeApp(firebaseConfig);
+        var database = firebase.database();
+
+        function updateLivescore(snapshot) {
+            const data = snapshot.val();
+            if (data) {
+                document.getElementById('teamAName').textContent = data.teamA.name || 'Team A';
+                document.getElementById('teamBName').textContent = data.teamB.name || 'Team B';
+                document.getElementById('teamAScore').textContent = data.teamA.score || '0';
+                document.getElementById('teamBScore').textContent = data.teamB.score || '0';
+                document.getElementById('timer').textContent = data.timer || '00:00';
+                document.getElementById('possessionA').textContent = data.statistics.possessionA || '0';
+                document.getElementById('possessionB').textContent = data.statistics.possessionB || '0';
+                document.getElementById('yellowA').textContent = data.statistics.yellowA || '0';
+                document.getElementById('yellowB').textContent = data.statistics.yellowB || '0';
+                document.getElementById('redA').textContent = data.statistics.redA || '0';
+                document.getElementById('redB').textContent = data.statistics.redB || '0';
+            }
+        }
+
+        database.ref('livescore').on('value', updateLivescore);
+
+        // Timer functionality
+        let timerInterval;
+        function startTimer(startMinute, display) {
+            let timer = startMinute * 60, minutes, seconds;
+            clearInterval(timerInterval);
+            timerInterval = setInterval(function () {
+                minutes = Math.floor(timer / 60);
+                seconds = timer % 60;
+
+                minutes = minutes < 10 ? "0" + minutes : minutes;
+                seconds = seconds < 10 ? "0" + seconds : seconds;
+
+                display.textContent = minutes + ":" + seconds;
+
+                timer++;
+            }, 1000);
+        }
+
+        database.ref('livescore/timer').on('value', function(snapshot) {
+            const timerStatus = snapshot.val();
+            if (timerStatus === 'HT') {
+                clearInterval(timerInterval);
+                document.getElementById('timer').textContent = "00:00";
+            } else if (timerStatus === '1st') {
+                startTimer(0, document.getElementById('timer'));
+            } else if (timerStatus === '2nd') {
+                startTimer(46, document.getElementById('timer'));
+            } else {
+                clearInterval(timerInterval);
+                document.getElementById('timer').textContent = "00:00";
+            }
+        });
+
+        // Countdown Timer
+        function updateCountdown() {
+            const endDate = new Date('2024-08-04T16:00:00');
+            const now = new Date();
+            const difference = endDate - now;
+
+            const days = Math.floor(difference / (1000 * 60 * 60 * 24));
+            const hours = Math.floor((difference % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+            const minutes = Math.floor((difference % (1000 * 60 * 60)) / (1000 * 60));
+            const seconds = Math.floor((difference % (1000 * 60)) / 1000);
+
+            document.getElementById('countdown').textContent = `${days}d ${hours}h ${minutes}m ${seconds}s`;
+
+            if (difference < 0) {
+                clearInterval(countdownInterval);
+                document.getElementById('countdown').textContent = "EXPIRED";
+            }
+        }
+
+        const countdownInterval = setInterval(updateCountdown, 1000);
+        updateCountdown();
+    </script>
+        <div class="footer">
+        Riders FC 
+        <a href="https://wa.me/2348102341648" target="_blank">
+            <img src="https://upload.wikimedia.org/wikipedia/commons/5/5e/WhatsApp_icon.png" alt="WhatsApp Icon" class="whatsapp-icon">
+        </a>
+    </div>
+</body>
+</html>
