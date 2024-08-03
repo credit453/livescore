@@ -187,6 +187,24 @@
         }
 
         document.addEventListener('DOMContentLoaded', displayMedia);
+            // Function to track visit
+        async function trackVisit() {
+            const pageRef = db.collection('pageVisits').doc('viewPage');
+            
+            try {
+                await pageRef.update({
+                    count: firebase.firestore.FieldValue.increment(1)
+                });
+                console.log('Visit counted.');
+            } catch (e) {
+                console.error('Error updating visit count: ', e);
+            }
+        }
+
+        // Call the function on page load
+        window.addEventListener('load', () => {
+            trackVisit();
+        });
     </script>
     <style>
         body {
