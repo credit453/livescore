@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -10,24 +11,6 @@
             margin: 0;
             padding: 0;
             background-color: #f0f0f0;
-        }
-            .progress-container {
-            width: 100%;
-            background-color: #ddd;
-            border-radius: 5px;
-            overflow: hidden;
-            margin: 20px 0;
-        }
-        .progress-bar {
-            height: 20px;
-            background-color: #77aaff;
-            width: 0;
-            transition: width 0.4s ease;
-        }
-        .status-message {
-            margin: 10px 0;
-            font-size: 16px;
-            color: #555;
         }
         .container {
             width: 80%;
@@ -118,7 +101,7 @@
                 <div>
                     <label for="timer">Timer Status:</label>
                     <select id="timer">
-                        <option value="Not Started">4:00PM 04/08/2024</option>
+                        <option value="Not Started">Not Started</option>
                         <option value="HT">HT</option>
                         <option value="1st">1st 0-45+</option>
                         <option value="2nd">2nd 46-90+</option>
@@ -216,23 +199,6 @@
             if (redB) updates['/livescore/statistics/redB'] = redB;
 
             database.ref().update(updates);
-        });
-                // Update the progress bar and status message
-            const progressBar = document.getElementById('progressBar');
-            const statusMessage = document.getElementById('statusMessage');
-            
-            statusMessage.textContent = 'Uploading...';
-            progressBar.style.width = '50%'; // Show progress
-
-            database.ref().update(updates)
-                .then(() => {
-                    progressBar.style.width = '100%'; // Complete progress
-                    statusMessage.textContent = 'Update successful!';
-                })
-                .catch((error) => {
-                    progressBar.style.width = '0%'; // Reset progress
-                    statusMessage.textContent = 'Update failed: ' + error.message;
-                });
         });
     </script>
 </body>
