@@ -1,0 +1,269 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Soccer Field Lineup</title>
+    <style>
+        body {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+            background-color: #e0f7fa;
+        }
+
+        .field {
+            position: relative;
+            width: 1000px; /* Length of the field */
+            height: 640px; /* Width of the field */
+            background-color: #4caf50;
+            border: 2px solid #fff;
+            border-radius: 10px;
+            overflow: hidden;
+        }
+
+        .player {
+            position: absolute;
+            width: 40px;
+            height: 40px;
+            background-size: cover;
+            background-repeat: no-repeat;
+        }
+
+        .goalkeeper {
+            background-image: url('https://static.thenounproject.com/png/4156707-200.png');
+        }
+
+        .defender {
+            background-image: url('https://static.thenounproject.com/png/4156707-200.png');
+        }
+
+        .midfielder {
+            background-image: url('https://static.thenounproject.com/png/4156707-200.png');
+        }
+
+        .forward {
+            background-image: url('https://static.thenounproject.com/png/4156707-200.png');
+        }
+
+        .goal-area, .center-line, .center-circle {
+            position: absolute;
+            border: 2px solid #fff;
+            background-color: transparent;
+        }
+
+        .goal-area {
+            width: 120px;
+            height: 240px;
+            border-radius: 5px;
+        }
+
+        .center-line {
+            width: 2px;
+            height: 100%;
+            top: 0;
+            left: 50%;
+            transform: translateX(-50%);
+        }
+
+        .center-circle {
+            width: 200px;
+            height: 200px;
+            border-radius: 50%;
+            border: 2px solid #fff;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+        }
+
+        /* Goal Area Positions */
+        #home-goal-area {
+            bottom: 30%;
+            left: 0;
+        }
+
+        #away-goal-area {
+            top: 35%;
+            right: 0;
+        }
+
+        /* Home team positions (4-4-2) */
+        #home-gk { bottom: 45%; left: 5%; transform: translate(-50%, 0); }
+        #home-rb { bottom: 15%; left: 20%; transform: translate(-50%, 0); }
+        #home-cb1 { bottom: 40%; left: 20%; transform: translate(-50%, 0); }
+        #home-cb2 { bottom: 60%; left: 20%; transform: translate(-50%, 0); }
+        #home-lb { bottom: 85%; left: 20%; transform: translate(-50%, 0); }
+        #home-rm { bottom: 15%; left: 30%; transform: translate(-50%, 0); }
+        #home-cm1 { bottom: 40%; left: 30%; transform: translate(-50%, 0); }
+        #home-cm2 { bottom: 60%; left: 30%; transform: translate(-50%, 0); }
+        #home-lm { bottom: 85%; left: 30%; transform: translate(-50%, 0); }
+        #home-st { bottom: 35%; left: 40%; transform: translate(-50%, 0); }
+        #home-cf { bottom: 65%; left: 40%; transform: translate(-50%, 0); }
+
+        /* Away team positions (4-3-3) */
+        #away-gk { top: 50%; right: 5%; transform: translate(50%, 0); }
+        #away-rb { top: 15%; right: 20%; transform: translate(50%, 0); }
+        #away-cb1 { top: 40%; right: 20%; transform: translate(50%, 0); }
+        #away-cb2 { top: 60%; right: 20%; transform: translate(50%, 0); }
+        #away-lb { top: 85%; right: 20%; transform: translate(50%, 0); }
+        #away-rm { top: 20%; right: 30%; transform: translate(50%, 0); }
+        #away-cm { top: 50%; right: 30%; transform: translate(50%, 0); }
+        #away-lm { top: 70%; right: 30%; transform: translate(50%, 0); }
+        #away-rf { top: 20%; right: 40%; transform: translate(50%, 0); }
+        #away-cf { top: 50%; right: 40%; transform: translate(50%, 0); }
+        #away-lf { top: 70%; right: 40%; transform: translate(50%, 0); }
+
+        /* Labels */
+        .label {
+            position: absolute;
+            font-size: 24px;
+            font-weight: bold;
+            color: #fff;
+            background: rgba(0, 0, 0, 0.5);
+            padding: 5px 10px;
+            border-radius: 5px;
+        }
+
+        #home-label {
+            top: 5%;
+            left: 5%;
+        }
+
+        #away-label {
+            top: 5%;
+            right: 5%;
+        }
+
+        /* Media Queries */
+        @media (max-width: 1200px) {
+            .field {
+                width: 80vw;
+                height: 50vw;
+            }
+
+            .player {
+                width: 30px;
+                height: 30px;
+            }
+
+            .goal-area {
+                width: 10vw;
+                height: 20vw;
+            }
+
+            .center-circle {
+                width: 15vw;
+                height: 15vw;
+            }
+
+            .label {
+                font-size: 20px;
+                padding: 4px 8px;
+            }
+        }
+
+        @media (max-width: 800px) {
+            .field {
+                width: 90vw;
+                height: 55vw;
+            }
+
+            .player {
+                width: 25px;
+                height: 25px;
+            }
+
+            .goal-area {
+                width: 12vw;
+                height: 24vw;
+            }
+
+            .center-circle {
+                width: 20vw;
+                height: 20vw;
+            }
+
+            .label {
+                font-size: 18px;
+                padding: 3px 6px;
+            }
+        }
+
+        @media (max-width: 500px) {
+            .field {
+                width: 95vw;
+                height: 60vw;
+            }
+
+            .player {
+                width: 20px;
+                height: 20px;
+            }
+
+            .goal-area {
+                width: 15vw;
+                height: 30vw;
+            }
+
+            .center-circle {
+                width: 25vw;
+                height: 25vw;
+            }
+
+            .label {
+                font-size: 16px;
+                padding: 2px 4px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="field">
+        <!-- Center Line -->
+        <div class="center-line"></div>
+
+        <!-- Center Circle -->
+        <div class="center-circle"></div>
+
+        <!-- Goal Areas -->
+        <div class="goal-area" id="home-goal-area"></div>
+        <div class="goal-area" id="away-goal-area"></div>
+
+        <!-- Goalkeepers -->
+        <div class="player goalkeeper" id="home-gk"></div>
+        <div class="player goalkeeper" id="away-gk"></div>
+
+        <!-- Defenders -->
+        <div class="player defender" id="home-rb"></div>
+        <div class="player defender" id="home-cb1"></div>
+        <div class="player defender" id="home-cb2"></div>
+        <div class="player defender" id="home-lb"></div>
+        <div class="player defender" id="away-rb"></div>
+        <div class="player defender" id="away-cb1"></div>
+        <div class="player defender" id="away-cb2"></div>
+        <div class="player defender" id="away-lb"></div>
+
+        <!-- Midfielders -->
+        <div class="player midfielder" id="home-rm"></div>
+        <div class="player midfielder" id="home-cm1"></div>
+        <div class="player midfielder" id="home-cm2"></div>
+        <div class="player midfielder" id="home-lm"></div>
+        <div class="player midfielder" id="away-rm"></div>
+        <div class="player midfielder" id="away-cm"></div>
+        <div class="player midfielder" id="away-lm"></div>
+
+        <!-- Forwards -->
+        <div class="player forward" id="home-st"></div>
+        <div class="player forward" id="home-cf"></div>
+        <div class="player forward" id="away-rf"></div>
+        <div class="player forward" id="away-cf"></div>
+        <div class="player forward" id="away-lf"></div>
+
+        <!-- Labels -->
+        <div class="label" id="home-label">Home Team (4-4-2)</div>
+        <div class="label" id="away-label">Away Team (4-3-3)</div>
+    </div>
+</body>
+</html>
