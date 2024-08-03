@@ -5,11 +5,11 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Display Visit Count</title>
     <!-- Firebase App (the core Firebase SDK) -->
-    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.0.2/firebase-app.js"></script>
     <!-- Firebase Firestore -->
-    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.0.2/firebase-firestore.js"></script>
     <!-- Firebase Analytics (optional) -->
-    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-analytics.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.0.2/firebase-analytics.js"></script>
 </head>
 <body>
     <h1>Page Visit Count</h1>
@@ -22,15 +22,16 @@
         const { getAnalytics } = firebase.analytics;
 
         // Your web app’s Firebase configuration
-        const firebaseConfig = {
-            apiKey: "AIzaSyB6tWe0xxeg9-A8rfv3ouRAWHkJzM1klzU",
-            authDomain: "upload-2f843.firebaseapp.com",
-            projectId: "upload-2f843",
-            storageBucket: "upload-2f843.appspot.com",
-            messagingSenderId: "111629636560",
-            appId: "1:111629636560:web:873b63fc4f0c3709391fd5",
-            measurementId: "G-XXXXXXXXXX" // Optional, replace with your actual measurement ID
-        };
+const firebaseConfig = {
+  apiKey: "AIzaSyB6tWe0xxeg9-A8rfv3ouRAWHkJzM1klzU",
+  authDomain: "upload-2f843.firebaseapp.com",
+  databaseURL: "https://upload-2f843-default-rtdb.firebaseio.com",
+  projectId: "upload-2f843",
+  storageBucket: "upload-2f843.appspot.com",
+  messagingSenderId: "111629636560",
+  appId: "1:111629636560:web:873b63fc4f0c3709391fd5",
+  measurementId: "G-BH95TYF6VY"
+};
 
         // Initialize Firebase
         const app = initializeApp(firebaseConfig);
