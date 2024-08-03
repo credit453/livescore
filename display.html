@@ -5,44 +5,46 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Display Visit Count</title>
     <!-- Firebase App (the core Firebase SDK) -->
-    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app.js"></script>
     <!-- Firebase Firestore -->
-    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore.js"></script>
     <!-- Firebase Analytics (optional) -->
-    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-analytics.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-analytics.js"></script>
 </head>
 <body>
     <h1>Page Visit Count</h1>
     <p id="visitCount">Loading...</p>
 
     <script>
-        import { initializeApp } from 'https://www.gstatic.com/firebasejs/9.0.2/firebase-app.js';
-        import { getStorage, ref as storageRef, uploadBytesResumable, getDownloadURL } from 'https://www.gstatic.com/firebasejs/9.0.2/firebase-storage.js';
-        import { getDatabase, ref as dbRef, push, onValue, set, increment, runTransaction } from 'https://www.gstatic.com/firebasejs/9.0.2/firebase-database.js';
+        // Import the required functions from Firebase SDKs
+        const { initializeApp } = firebase;
+        const { getFirestore, doc, getDoc } = firebase.firestore;
+        const { getAnalytics } = firebase.analytics;
 
+        // Your web app’s Firebase configuration
         const firebaseConfig = {
             apiKey: "AIzaSyB6tWe0xxeg9-A8rfv3ouRAWHkJzM1klzU",
             authDomain: "upload-2f843.firebaseapp.com",
-            databaseURL: "https://upload-2f843-default-rtdb.firebaseio.com",
             projectId: "upload-2f843",
             storageBucket: "upload-2f843.appspot.com",
             messagingSenderId: "111629636560",
-            appId: "1:111629636560:web:873b63fc4f0c3709391fd5"
+            appId: "1:111629636560:web:873b63fc4f0c3709391fd5",
+            measurementId: "G-XXXXXXXXXX" // Optional, replace with your actual measurement ID
         };
 
         // Initialize Firebase
-        const app = firebase.initializeApp(firebaseConfig);
-        const db = firebase.firestore(app);
-        const analytics = firebase.getAnalytics(app); // Optional
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+        const analytics = getAnalytics(app); // Optional
 
         // Function to display visit count
         async function displayVisitCount() {
-            const pageRef = db.collection('pageVisits').doc('viewPage');
+            const pageRef = doc(db, 'pageVisits', 'viewPage');
             
             try {
-                const doc = await pageRef.get();
-                if (doc.exists) {
-                    const count = doc.data().count;
+                const docSnap = await getDoc(pageRef);
+                if (docSnap.exists()) {
+                    const count = docSnap.data().count;
                     document.getElementById('visitCount').innerText = `This page has been visited ${count} times.`;
                 } else {
                     document.getElementById('visitCount').innerText = 'No visit data available.';
